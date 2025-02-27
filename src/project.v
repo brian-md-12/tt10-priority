@@ -14,16 +14,16 @@ module tt_um_priority_encoder(
     input  wire       ena,      // always 1 when the design is powered, so you can ignore it
     input  wire       clk,      // clock
     input  wire       rst_n     // reset_n - low to reset
-);
-
+    reg [15:0]
     reg [7:0] uo_out_reg; // Intermediate register for uo_out
+);
+    // Concatenate
+
+    
     always @(*) begin
-        // Concatenate
-         reg [15:0] In = {ui_in, uio_in};// Concatenated 16-bit input
-        
+         In = {ui_in, uio_in};// Concatenated 16-bit input
         // Default output for all inputs 0
         uo_out_reg = 8'b11110000;
-
         // Priority encoding logic
         if (In[15]) uo_out_reg = 8'd15;
         else if (In[14]) uo_out_reg = 8'd14;
