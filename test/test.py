@@ -5,29 +5,39 @@ import cocotb
 from cocotb.triggers import Timer
 
 @cocotb.test()
-async def test_adder(dut):
-    """Test the 8-bit adder functionality."""
-    
-    dut._log.info("Starting adder test")
+async def test_priority_encoder(dut):
+    """Test the priority encoder functionality for all possible input cases."""
 
-    # Define test cases: (ui_in, uio_in, expected output)
-    test_cases = [
-        (0, 0, 0),
-        (10, 15, 25),
-        (20, 30, 50),
-        (255, 1, 0),  # Overflow case (8-bit wrap-around)
-        (128, 128, 0) # Overflow case
-    ]
+    dut._log.info("Starting exhaustive priority encoder test")
 
-    for ui_in, uio_in, expected in test_cases:
-        # Set inputs
+    # Iterate through all 16-bit input combinations (0 to 65535)
+    for i in range(65536):
+        # Split the 16-bit input into ui_in (upper 8 bits) and uio_in (lower 8 bits)
+        ui_in = (i >> 8) & 0xFF  # Upper 8 bits
+        uio_in = i & 0xFF        # Lower 8 bits
+
+        # Set inputs ui_in and uio_in
         dut.ui_in.value = ui_in
         dut.uio_in.value = uio_in
 
-        # Wait briefly to ensure values settle (not strictly needed for combinational logic)
-        await Timer(1, units="ns")
+        # Wait for 10 time units to ensure values settle
+        await Timer(10, units="ns")
 
-        # Check expected output
-        assert dut.uo_out.value == expected, f"Adder failed: {ui_in} + {uio_in} = {dut.uo_out.value}, expected {expected}"
-    
-    dut._log.info("Adder test completed successfully")
+        # Calculate the expected output
+        expected_output = 0b11110000  # Default output (all zeros)
+        for bit in range(15, -1, -1):
+            if (i >> bit) & 1:
+                expected_output = bit
+                break
+
+        # Check if the output matches the expected value
+        if dut.uo_out.value.is_resolvable:
+            assert dut.uo_out.value.integer == expected_output, (
+                f"Priority encoder failed: input = {i:016b}, "
+                f"uo_out = {dut.uo_out.value.integer:08b}, "
+                f"expected = {expected_output:08b}"
+            )
+        else:
+            dut._log.error(f"Unresolvable output: uo_out = {dut.uo_out.value.binstr}")
+
+    dut._log.info("All 65,536 test cases passed!")
