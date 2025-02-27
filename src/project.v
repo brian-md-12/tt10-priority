@@ -17,31 +17,30 @@ module tt_um_priority_encoder(
 
 );
 
-    reg [15:0] In;
-    reg [7:0] uo_out_reg; // Intermediate register for uo_out
-    
-    always @(*) begin
-         In = {ui_in, uio_in};// Concatenated 16-bit input
-        // Default output for all inputs 0
-        uo_out_reg = 8'b11110000;
-        // Priority encoding logic
-        if (In[15]) uo_out_reg = 8'd15;
-        else if (In[14]) uo_out_reg = 8'd14;
-        else if (In[13]) uo_out_reg = 8'd13;
-        else if (In[12]) uo_out_reg = 8'd12;
-        else if (In[11]) uo_out_reg = 8'd11;
-        else if (In[10]) uo_out_reg = 8'd10;
-        else if (In[9]) uo_out_reg = 8'd9;
-        else if (In[8]) uo_out_reg = 8'd8;
-        else if (In[7]) uo_out_reg = 8'd7;
-        else if (In[6]) uo_out_reg = 8'd6;
-        else if (In[5]) uo_out_reg = 8'd5;
-        else if (In[4]) uo_out_reg = 8'd4;
-        else if (In[3]) uo_out_reg = 8'd3;
-        else if (In[2]) uo_out_reg = 8'd2;
-        else if (In[1]) uo_out_reg = 8'd1;
-        else if (In[0]) uo_out_reg = 8'd0;
-    end
+    // Generate priority output using a function and continuous assignment
+    assign uo_out = priority_encode({ui_in, uio_in});
+
+    function automatic [7:0] priority_encode(input [15:0] In);
+        begin
+            priority_encode = 8'b11110000; // Default output when all inputs are 0
+            if (In[15]) priority_encode = 8'd15;
+            else if (In[14]) priority_encode = 8'd14;
+            else if (In[13]) priority_encode = 8'd13;
+            else if (In[12]) priority_encode = 8'd12;
+            else if (In[11]) priority_encode = 8'd11;
+            else if (In[10]) priority_encode = 8'd10;
+            else if (In[9])  priority_encode = 8'd9;
+            else if (In[8])  priority_encode = 8'd8;
+            else if (In[7])  priority_encode = 8'd7;
+            else if (In[6])  priority_encode = 8'd6;
+            else if (In[5])  priority_encode = 8'd5;
+            else if (In[4])  priority_encode = 8'd4;
+            else if (In[3])  priority_encode = 8'd3;
+            else if (In[2])  priority_encode = 8'd2;
+            else if (In[1])  priority_encode = 8'd1;
+            else if (In[0])  priority_encode = 8'd0;
+        end
+    endfunction
 
   
   // All output pins must be assigned. If not used, assign to 0.
